@@ -6,17 +6,11 @@ output:
     keep_md: yes
   pdf_document: default
 ---
-<!--
-#`{r} knitr::opts_chunk$set(message=F,echo = FALSE, results = "hide", cache=FALSE)  `
-date: "Friday, May 15, 2015"
-
-#```{r, echo=FALSE} knitr::opts_chunk$set(results="hide", fig.show="hide") ```
--->
 
 ### Report generated on `r format(Sys.Date(), "%B %d, %Y")`
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set( echo=FALSE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE)
 #Set scipen to 100 to prevent values being print as a power of 10
 options("scipen"=100, "digits"=4)
 ```
@@ -25,7 +19,6 @@ options("scipen"=100, "digits"=4)
 #Load Libraries needed
 library(data.table)
 library(dplyr)
-library(ggplot2)
 library(lattice)
 ```
 
@@ -37,7 +30,6 @@ library(lattice)
 
     #Transform  data to data table to help with analysis
     data_table<-data.table(csv)
-    summary(data_table)
 ```
 
 
@@ -46,13 +38,13 @@ library(lattice)
 ```{r steps_summary}
     by_date<-group_by(data_table,date)
     steps_summary<-summarise(by_date,step_count=sum(steps,na.rm=T))
-    hist(steps_summary$step_count,
-         ylim=c(0,10),
-         breaks=40,
-         xlab="No. of Steps per day",
-         main="Histogram of no. of steps per day")
-steps_summary
-str(steps_summary)
+    histogram(~step_count,
+        data=steps_summary,
+        type="count",
+        ylim=c(0,12),
+        breaks=40,
+        xlab="No. of Steps per day",
+        main="Histogram of no. of steps per day")
 
 ```
 
@@ -64,40 +56,28 @@ str(steps_summary)
 ## What is the average daily activity pattern?
 
 ```{r avg_daily_pattern}
-    by_interval<-group_by(data_table,interval)
-    interval_summary<-summarise(by_interval,interval_avg=mean(steps,na.rm=T))
-    plot(interval_summary$interval_avg, 
-         type="l", 
-         xlab= "Interval", 
-         ylab= "Average number of steps take in an interval across all days",
-         main="Time series plot:average steps of the 5-minute interval, across all days",
-         )
-    
+
+by_interval<-group_by(data_table,interval)
+interval_summary<-summarise(by_interval,interval_avg=mean(steps,na.rm=T))
+
+xyplot( interval_avg ~ interval,
+    data = interval_summary,
+    type = "l",
+    xlab= "Interval", 
+    ylab= "Average number of steps take in an interval across all days",
+    main="Time series plot:average steps of the 5-minute interval, across all days",
+    col.line = c(rep("blue",3), "red"))
+
 ```
 
 
 ###On average across all the days in the dataset, interval `r interval_summary[which.max(interval_avg),]$interval ` contains the maximum number of steps
     
 ***  
-<!--
-```{r}
-
-
-    by_date<-group_by(data_table,date)
-    steps_summary<-summarise(by_date,step_count=sum(steps,na.rm=T))
-    hist(steps_summary$step_count,
-         ylim=c(0,15),
-         breaks=40,
-         xlab="No. of Steps per day",
-         main="Histogram of no. of steps per day")
-```
--->
 
 ## Imputing missing values
-```{r imputing_missing_values, cache=TRUE}
+```{r imputing_missing_values, cache=F}
 
-na_rows<-filter(data_table,is.na(steps) )
-nrow(na_rows)
 new_data_table<-copy(data_table)
 
 for(i in 1:nrow(new_data_table))
@@ -108,20 +88,24 @@ for(i in 1:nrow(new_data_table))
                 as.integer(interval_summary[interval==new_data_table[i]$interval]$interval_avg)
         }
     }
+
 by_date2<-group_by(new_data_table,date)
 steps_summary2<-summarise(by_date2,step_count=sum(steps,na.rm=T))
-hist(steps_summary2$step_count,
-     ylim=c(0,15),
-     breaks=40,
-     xlab="No. of Steps per day",
-     main="Histogram of no. of steps per day")
+
+histogram(~step_count,
+    data=steps_summary2,
+    type="count",
+    ylim=c(0,12),
+    breaks=40,
+    xlab="No. of Steps per day",
+    main="Histogram of no. of steps per day")
 
 ```
 
 
 ###Mean of no. of steps is `r mean(steps_summary$step_count)`  
 ###Median of no. of steps is `r median(steps_summary$step_count)`   
-### Means of no. of steps is `r mean(steps_summary2$step_count)`  
+###Means of no. of steps is `r mean(steps_summary2$step_count)`  
 ###Median of no. of steps is `r median(steps_summary2$step_count)`   
 
 ***  
@@ -137,11 +121,12 @@ isWeekday<-function(x){
         return("Weekday")
 }
 
-#Add day of the week column as day
-data_table[,day:=sapply(weekdays(as.Date(date , format = "%Y-%m-%d")),isWeekday)]
+#Add Weekday/Weekend - day of the week column as day
+data_table<-data_table[,day:=sapply(weekdays(as.Date(date , format = "%Y-%m-%d")),isWeekday)]
 
 day_interval<-group_by(data_table,day,interval)
 week_summary<-summarise(day_interval,interval_avg=mean(steps,na.rm=T))
+
 xyplot( interval_avg ~ interval| day,
     data = week_summary,
     type = "l",
@@ -149,25 +134,6 @@ xyplot( interval_avg ~ interval| day,
     lwd = c(1, 1, 1, 3),
     layout=c(1,2),
     col.line = c(rep("blue",3), "red"))
-
-#     we_interval<-group_by(weekend,interval)
-#     weekend_summary<-summarise(we_interval,interval_avg=mean(steps,na.rm=T))
-#     plot(weekend_summary$interval_avg, 
-#          type="l", 
-#          xlab= "Interval", 
-#          ylab="Average number of steps take in an interval across all weeknds",
-#          main="Time series plot:average steps of the 5-minute interval, across all weekends",
-#          )
-#     
-#     wd_interval<-group_by(weekday,interval)
-#     weekday<-summarise(wd_interval,interval_avg=mean(steps,na.rm=T))
-#     plot(weekday$interval_avg, 
-#          type="l", 
-#          xlab= "Interval", 
-#          ylab= "Average number of steps take in an interval across all days",
-#          main="Time series plot:average steps of the 5-minute interval, across all days",
-#          )
-#     
 
 ```
 
