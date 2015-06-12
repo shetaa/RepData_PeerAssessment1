@@ -3,8 +3,8 @@ title: 'Reproducible Research: Peer Assessment 1'
 author: "Aashish Shetty"
 output:
   html_document:
-    keep_md: yes
-  pdf_document: default
+    keep_md: true
+    pdf_document: default
 ---
 
 ### Report generated on `r format(Sys.Date(), "%B %d, %Y")`
@@ -15,23 +15,21 @@ knitr::opts_chunk$set( echo=TRUE, warning=FALSE, message=FALSE, fig.keep="all")
 options("scipen"=100, "digits"=4)
 ```
 
-```{r Load_libraries_needed}
-#Load Libraries needed
-library(data.table)
-library(dplyr)
-library(lattice)
-```
-
 ## Loading and preprocessing the data
 ```{r load_preprocess}
+    #Load Libraries needed
+    library(data.table)
+    library(dplyr)
+    library(lattice)
+
     #Load the data (i.e. read.csv())
-    #csv<-read.csv("activity.csv",colClasses=c("numeric","Date","numeric",NA) )
     csv<-read.csv("activity.csv",as.is=F )
 
     #Transform  data to data table to help with analysis
     data_table<-data.table(csv)
 ```
 
+***  
 
 
 ## What is mean total number of steps taken per day?
@@ -48,8 +46,8 @@ library(lattice)
 
 ```
 
-###Mean of no. of steps is `r mean(steps_summary$step_count)`  
-###Median of no. of steps is `r median(steps_summary$step_count)`   
+####Mean of number of steps taken each day is  `r mean(steps_summary$step_count)`  
+####Median of number of steps taken each day is `r median(steps_summary$step_count)`   
   
 ***  
   
@@ -63,7 +61,7 @@ interval_summary<-summarise(by_interval,interval_avg=mean(steps,na.rm=T))
 xyplot( interval_avg ~ interval,
     data = interval_summary,
     type = "l",
-    xlab= "Interval", 
+    xlab= "5- minute Interval", 
     ylab= "Average number of steps take in an interval across all days",
     main="Time series plot:average steps of the 5-minute interval, across all days",
     col.line = c(rep("blue",3), "red"))
@@ -71,23 +69,26 @@ xyplot( interval_avg ~ interval,
 ```
 
 
-###On average across all the days in the dataset, interval `r interval_summary[which.max(interval_avg),]$interval ` contains the maximum number of steps
+####On average across all the days in the dataset, the 5-minute interval `r interval_summary[which.max(interval_avg),]$interval ` contains the maximum number of steps
     
 ***  
 
 ## Imputing missing values
+
+####Total number of missing values in the dataset `r length(which(is.na(data_table$steps)))`
+
+###Strategy for Imputing missing values
+####Replace missing values with the with mean for that 5-minute interval. This has been saved in interval_summary in the previous step
+
 ```{r imputing_missing_values, cache=F}
 
 new_data_table<-copy(data_table)
 
-for(i in 1:nrow(new_data_table))
-    {
-        if(is.na(new_data_table[i]$steps))
-        {
-            new_data_table[i]$steps = 
-                as.integer(interval_summary[interval==new_data_table[i]$interval]$interval_avg)
-        }
-    }
+for(i in which(is.na(new_data_table$steps)))
+{
+    new_data_table[i]$steps = 
+        as.integer(interval_summary[interval==new_data_table[i]$interval]$interval_avg)
+}
 
 by_date2<-group_by(new_data_table,date)
 steps_summary2<-summarise(by_date2,step_count=sum(steps,na.rm=T))
@@ -98,16 +99,16 @@ histogram(~step_count,
     ylim=c(0,12),
     breaks=40,
     xlab="No. of Steps per day",
-    main="Histogram of no. of steps per day")
+    main="Histogram of no. of steps per day after imputing missing values")
+
 
 ```
 
 
-###Mean of no. of steps is `r mean(steps_summary$step_count)`  
-###Median of no. of steps is `r median(steps_summary$step_count)`   
-###Means of no. of steps is `r mean(steps_summary2$step_count)`  
-###Median of no. of steps is `r median(steps_summary2$step_count)`   
+####Before imputing data Mean of no. of steps was `r mean(steps_summary$step_count)`  , after imputing missing data it has increased to `r mean(steps_summary2$step_count)`   
+####Before imputing data Median of no. of steps is `r median(steps_summary$step_count)`, after imputing missing data it has increased to `r median(steps_summary2$step_count)`
 
+####Hence after imputing missing data, the median and mean increased slightly 
 ***  
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -133,7 +134,10 @@ xyplot( interval_avg ~ interval| day,
     lty = c(1, 2, 2, 1),
     lwd = c(1, 1, 1, 3),
     layout=c(1,2),
-    col.line = c(rep("blue",3), "red"))
+    xlab= "5- minute Interval", 
+    ylab= "Average number of steps take in an interval across all days",
+    col.line = c(rep("blue",3), "red"),
+    main="Comparison between Weekday and weekend activity")
 
 ```
 
