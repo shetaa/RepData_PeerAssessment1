@@ -44,6 +44,8 @@ options("scipen"=100, "digits"=4)
         xlab="No. of Steps per day",
         main="Histogram of no. of steps per day")
 
+#Mean of number of steps taken each day is  `r mean(steps_summary$step_count)`  
+#Median of number of steps taken each day is `r median(steps_summary$step_count)`   
 ```
 
 ####Mean of number of steps taken each day is  `r mean(steps_summary$step_count)`  
@@ -65,6 +67,10 @@ xyplot( interval_avg ~ interval,
     ylab= "Average number of steps take in an interval across all days",
     main="Time series plot:average steps of the 5-minute interval, across all days",
     col.line = c(rep("blue",3), "red"))
+
+####On average across all the days in the dataset, the 5-minute interval `r interval_summary[which.max(interval_avg),]$interval ` contains the maximum number of steps
+
+####Total number of missing values in the dataset `r length(which(is.na(data_table$steps)))`
 
 ```
 
@@ -102,6 +108,8 @@ histogram(~step_count,
     main="Histogram of no. of steps per day after imputing missing values")
 
 
+####Before imputing data Mean of no. of steps was `r mean(steps_summary$step_count)`  , after imputing missing data it has increased to `r mean(steps_summary2$step_count)`   
+####Before imputing data Median of no. of steps is `r median(steps_summary$step_count)`, after 
 ```
 
 

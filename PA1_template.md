@@ -1,7 +1,7 @@
 # Reproducible Research: Peer Assessment 1
 Aashish Shetty  
 
-### Report generated on June 12, 2015
+### Report generated on June 15, 2015
 
 
 
@@ -39,6 +39,11 @@ Aashish Shetty
 
 ![](PA1_template_files/figure-html/steps_summary-1.png) 
 
+```r
+#Mean of number of steps taken each day is  `r mean(steps_summary$step_count)`  
+#Median of number of steps taken each day is `r median(steps_summary$step_count)`   
+```
+
 ####Mean of number of steps taken each day is  9354.2295  
 ####Median of number of steps taken each day is 10395   
   
@@ -61,6 +66,12 @@ xyplot( interval_avg ~ interval,
 ```
 
 ![](PA1_template_files/figure-html/avg_daily_pattern-1.png) 
+
+```r
+####On average across all the days in the dataset, the 5-minute interval `r interval_summary[which.max(interval_avg),]$interval ` contains the maximum number of steps
+
+####Total number of missing values in the dataset `r length(which(is.na(data_table$steps)))`
+```
 
 
 ####On average across all the days in the dataset, the 5-minute interval 835 contains the maximum number of steps
@@ -97,6 +108,11 @@ histogram(~step_count,
 ```
 
 ![](PA1_template_files/figure-html/imputing_missing_values-1.png) 
+
+```r
+####Before imputing data Mean of no. of steps was `r mean(steps_summary$step_count)`  , after imputing missing data it has increased to `r mean(steps_summary2$step_count)`   
+####Before imputing data Median of no. of steps is `r median(steps_summary$step_count)`, after 
+```
 
 
 ####Before imputing data Mean of no. of steps was 9354.2295  , after imputing missing data it has increased to 10749.7705   
